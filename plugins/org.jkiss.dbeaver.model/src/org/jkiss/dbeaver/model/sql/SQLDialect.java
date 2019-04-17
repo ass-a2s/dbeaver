@@ -107,6 +107,8 @@ public interface SQLDialect {
 
     boolean isAttributeQueryWord(@NotNull String word);
 
+    int getKeywordNextLineIndent(@NotNull String word);
+
     /**
      * Retrieves the string that can be used to escape wildcard characters.
      * This is the string that can be used to escape '_' or '%' in
@@ -157,6 +159,9 @@ public interface SQLDialect {
      */
     char getStructSeparator();
 
+    @NotNull
+    String[] getParametersPrefixes();
+
     /**
      * Script delimiter character
      * @return script delimiter mark
@@ -206,9 +211,10 @@ public interface SQLDialect {
     /**
      * Checks that specified character is a valid identifier part. Non-valid characters should be quoted in queries.
      * @param c character
+     * @param quoted
      * @return true or false
      */
-    boolean validIdentifierPart(char c);
+    boolean validIdentifierPart(char c, boolean quoted);
 
     boolean supportsUnquotedMixedCase();
 

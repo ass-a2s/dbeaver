@@ -152,9 +152,8 @@ public class ProjectExplorerView extends NavigatorViewBase implements DBPProject
         columnController.addColumn("Size", "File size", SWT.LEFT, false, false, true, null, new TreeColumnViewerLabelProvider(new LabelProvider() {
             @Override
             public String getText(Object element) {
-                DBNNode node = (DBNNode) element;
-                if (node instanceof DBNResource) {
-                    IResource resource = ((DBNResource) node).getResource();
+                if (element instanceof DBNResource) {
+                    IResource resource = ((DBNResource) element).getResource();
                     if (resource instanceof IFile) {
                         return String.valueOf(resource.getLocation().toFile().length());
                     }
@@ -167,11 +166,14 @@ public class ProjectExplorerView extends NavigatorViewBase implements DBPProject
 
             @Override
             public String getText(Object element) {
-                DBNNode node = (DBNNode) element;
-                if (node instanceof DBNResource) {
-                    IResource resource = ((DBNResource) node).getResource();
+                if (element instanceof DBNResource) {
+                    IResource resource = ((DBNResource) element).getResource();
                     if (resource instanceof IFile || resource instanceof IFolder) {
-                        return sdf.format(new Date(resource.getLocation().toFile().lastModified()));
+                        long lastModified = resource.getLocation().toFile().lastModified();
+                        if (lastModified <= 0) {
+                            return "";
+                        }
+                        return sdf.format(new Date(lastModified));
                     }
                 }
                 return "";
@@ -180,9 +182,8 @@ public class ProjectExplorerView extends NavigatorViewBase implements DBPProject
         columnController.addColumn("Type", "Resource type", SWT.LEFT, false, false, new TreeColumnViewerLabelProvider(new LabelProvider() {
             @Override
             public String getText(Object element) {
-                DBNNode node = (DBNNode) element;
-                if (node instanceof DBNResource) {
-                    IResource resource = ((DBNResource) node).getResource();
+                if (element instanceof DBNResource) {
+                    IResource resource = ((DBNResource) element).getResource();
                     ProgramInfo program = ProgramInfo.getProgram(resource);
                     if (program != null) {
                         return program.getProgram().getName();
@@ -210,9 +211,9 @@ public class ProjectExplorerView extends NavigatorViewBase implements DBPProject
     @Override
     public void handleActiveProjectChange(IProject oldValue, IProject newValue)
     {
-        getNavigatorTree().reloadTree(getRootNode());
-        updateTitle();
         UIUtils.asyncExec(() -> {
+            getNavigatorTree().reloadTree(getRootNode());
+            updateTitle();
             UIUtils.packColumns(getNavigatorTree().getViewer().getTree(), true, null);
         });
     }

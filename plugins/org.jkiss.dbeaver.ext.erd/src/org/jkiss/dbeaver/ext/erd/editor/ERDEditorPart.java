@@ -70,6 +70,7 @@ import org.jkiss.dbeaver.ext.erd.dnd.NodeDropTargetListener;
 import org.jkiss.dbeaver.ext.erd.editor.tools.ChangeZOrderAction;
 import org.jkiss.dbeaver.ext.erd.editor.tools.ResetPartColorAction;
 import org.jkiss.dbeaver.ext.erd.editor.tools.SetPartColorAction;
+import org.jkiss.dbeaver.ext.erd.editor.tools.SetPartSettingsAction;
 import org.jkiss.dbeaver.ext.erd.export.ERDExportFormatHandler;
 import org.jkiss.dbeaver.ext.erd.export.ERDExportFormatRegistry;
 import org.jkiss.dbeaver.ext.erd.model.ERDDecorator;
@@ -391,7 +392,12 @@ public abstract class ERDEditorPart extends GraphicalEditorWithFlyoutPalette
         // Set context menu
         ContextMenuProvider provider = new ERDEditorContextMenuProvider(this);
         viewer.setContextMenu(provider);
-        getSite().registerContextMenu(ERDEditorPart.class.getName() + ".EditorContext", provider, viewer);
+        IWorkbenchPartSite site = getSite();
+        if (site instanceof IEditorSite) {
+            ((IEditorSite)site).registerContextMenu(ERDEditorPart.class.getName() + ".EditorContext", provider, viewer, false);
+        } else {
+            site.registerContextMenu(ERDEditorPart.class.getName() + ".EditorContext", provider, viewer);
+        }
     }
 
     private GraphicalViewer createViewer(Composite parent)
@@ -730,6 +736,10 @@ public abstract class ERDEditorPart extends GraphicalEditorWithFlyoutPalette
         ResetPartColorAction resetPartColorAction = new ResetPartColorAction(this, selection);
         if (resetPartColorAction.isEnabled()) {
             menu.add(resetPartColorAction);
+        }
+        SetPartSettingsAction settingsAction = new SetPartSettingsAction(this, selection);
+        if (settingsAction.isEnabled()) {
+            menu.add(settingsAction);
         }
 
 /*

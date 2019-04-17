@@ -38,6 +38,8 @@ import org.jkiss.dbeaver.model.DBPErrorAssistant;
 import org.jkiss.dbeaver.model.DBUtils;
 import org.jkiss.dbeaver.model.access.DBAAuthInfo;
 import org.jkiss.dbeaver.model.access.DBAPasswordChangeInfo;
+import org.jkiss.dbeaver.model.connection.DBPDriver;
+import org.jkiss.dbeaver.model.connection.DBPDriverDependencies;
 import org.jkiss.dbeaver.model.navigator.DBNNode;
 import org.jkiss.dbeaver.model.runtime.DBRProcessDescriptor;
 import org.jkiss.dbeaver.model.runtime.DBRProcessListener;
@@ -51,10 +53,13 @@ import org.jkiss.dbeaver.ui.TrayIconHandler;
 import org.jkiss.dbeaver.ui.UITask;
 import org.jkiss.dbeaver.ui.UIUtils;
 import org.jkiss.dbeaver.ui.actions.datasource.DataSourceInvalidateHandler;
+import org.jkiss.dbeaver.ui.dialogs.AcceptLicenseDialog;
 import org.jkiss.dbeaver.ui.dialogs.StandardErrorDialog;
 import org.jkiss.dbeaver.ui.dialogs.connection.BaseAuthDialog;
 import org.jkiss.dbeaver.ui.dialogs.connection.PasswordChangeDialog;
+import org.jkiss.dbeaver.ui.dialogs.driver.DriverDownloadDialog;
 import org.jkiss.dbeaver.ui.dialogs.driver.DriverEditDialog;
+import org.jkiss.dbeaver.ui.dialogs.exec.ExecutionQueueErrorJob;
 import org.jkiss.dbeaver.ui.navigator.actions.NavigatorHandlerObjectOpen;
 import org.jkiss.dbeaver.ui.navigator.dialogs.BrowseObjectDialog;
 import org.jkiss.dbeaver.ui.views.process.ProcessPropertyTester;
@@ -150,6 +155,29 @@ public class DBeaverUI implements DBPPlatformUI {
     }
 
     @Override
+    public boolean acceptLicense(String message, String licenseText) {
+        return new UITask<Boolean>() {
+            @Override
+            protected Boolean runTask() {
+                return AcceptLicenseDialog.acceptLicense(
+                    UIUtils.getActiveWorkbenchShell(),
+                    message,
+                    licenseText);
+            }
+        }.execute();
+    }
+
+    @Override
+    public boolean downloadDriverFiles(DBPDriver driver, DBPDriverDependencies dependencies) {
+        return new UITask<Boolean>() {
+            @Override
+            protected Boolean runTask() {
+                return DriverDownloadDialog.downloadDriverFiles(null, driver, dependencies);
+            }
+        }.execute();
+    }
+
+    @Override
     public UserResponse showError(@NotNull final String title, @Nullable final String message, @NotNull final IStatus status) {
         for (IStatus s = status; s != null; ) {
             if (s.getException() instanceof DBException) {
@@ -196,6 +224,11 @@ public class DBeaverUI implements DBPPlatformUI {
             title,
             message,
             error ? SWT.ICON_ERROR : SWT.ICON_INFORMATION);
+    }
+
+    @Override
+    public UserResponse showErrorStopRetryIgnore(String task, Throwable error, boolean queue) {
+        return ExecutionQueueErrorJob.showError(task, error, queue);
     }
 
     @Override

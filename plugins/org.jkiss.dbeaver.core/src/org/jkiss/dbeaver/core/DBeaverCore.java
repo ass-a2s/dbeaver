@@ -47,6 +47,7 @@ import org.jkiss.dbeaver.model.runtime.VoidProgressMonitor;
 import org.jkiss.dbeaver.model.sql.format.SQLFormatterRegistry;
 import org.jkiss.dbeaver.registry.*;
 import org.jkiss.dbeaver.registry.datatype.DataTypeProviderRegistry;
+import org.jkiss.dbeaver.registry.driver.DriverDescriptor;
 import org.jkiss.dbeaver.registry.formatter.DataFormatterRegistry;
 import org.jkiss.dbeaver.registry.language.PlatformLanguageRegistry;
 import org.jkiss.dbeaver.runtime.IPluginService;
@@ -56,6 +57,7 @@ import org.jkiss.dbeaver.runtime.net.GlobalProxySelector;
 import org.jkiss.dbeaver.runtime.qm.QMControllerImpl;
 import org.jkiss.dbeaver.runtime.qm.QMLogFileWriter;
 import org.jkiss.dbeaver.ui.editors.sql.registry.SQLFormatterConfigurationRegistry;
+import org.jkiss.dbeaver.ui.resources.DefaultResourceHandlerImpl;
 import org.jkiss.dbeaver.utils.ContentUtils;
 import org.jkiss.dbeaver.utils.GeneralUtils;
 import org.jkiss.dbeaver.utils.RuntimeUtils;
@@ -80,9 +82,10 @@ public class DBeaverCore implements DBPPlatform {
 
     // The plug-in ID
     public static final String PLUGIN_ID = "org.jkiss.dbeaver.core"; //$NON-NLS-1$
-    public static final String APP_CONFIG_FILE = "dbeaver.ini";
-    public static final String ECLIPSE_CONFIG_FILE = "eclipse.ini";
-    public static final String TEMP_PROJECT_NAME = ".dbeaver-temp"; //$NON-NLS-1$
+
+    private static final String APP_CONFIG_FILE = "dbeaver.ini";
+    private static final String ECLIPSE_CONFIG_FILE = "eclipse.ini";
+    private static final String TEMP_PROJECT_NAME = ".dbeaver-temp"; //$NON-NLS-1$
 
     private static final Log log = Log.getLog(DBeaverCore.class);
 
@@ -165,7 +168,7 @@ public class DBeaverCore implements DBPPlatform {
         return workbench == null || workbench.isClosing();
     }
 
-    public static void setClosing(boolean closing) {
+    private static void setClosing(boolean closing) {
         isClosing = closing;
     }
 
@@ -173,7 +176,7 @@ public class DBeaverCore implements DBPPlatform {
         return DBeaverActivator.getInstance().getPreferences();
     }
 
-    DBeaverCore() {
+    private DBeaverCore() {
     }
 
     private void initialize() {
@@ -228,7 +231,7 @@ public class DBeaverCore implements DBPPlatform {
         initializeProjects();
 
         // Navigator model
-        this.navigatorModel = new DBNModel(this);
+        this.navigatorModel = new DBNModel(this, true);
         this.navigatorModel.initialize();
 
         // Activate proxy service
@@ -336,6 +339,11 @@ public class DBeaverCore implements DBPPlatform {
     @Override
     public DBPWorkspace getWorkspace() {
         return workspace;
+    }
+
+    @Override
+    public DBPResourceHandler getDefaultResourceHandler() {
+        return DefaultResourceHandlerImpl.INSTANCE;
     }
 
     @NotNull
@@ -539,6 +547,11 @@ public class DBeaverCore implements DBPPlatform {
     @Override
     public File getConfigurationFile(String fileName) {
         return DBeaverActivator.getConfigurationFile(fileName);
+    }
+
+    @Override
+    public File getCustomDriversHome() {
+        return DriverDescriptor.getCustomDriversHome();
     }
 
     @Override

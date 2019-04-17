@@ -49,6 +49,7 @@ import org.jkiss.dbeaver.model.exec.DBCStatistics;
 import org.jkiss.dbeaver.model.navigator.DBNDatabaseNode;
 import org.jkiss.dbeaver.model.runtime.DBRRunnableWithProgress;
 import org.jkiss.dbeaver.model.runtime.SystemJob;
+import org.jkiss.dbeaver.model.sql.SQLQueryContainer;
 import org.jkiss.dbeaver.model.sql.SQLSyntaxManager;
 import org.jkiss.dbeaver.model.sql.SQLUtils;
 import org.jkiss.dbeaver.model.struct.DBSDataContainer;
@@ -116,12 +117,10 @@ class ResultSetFilterPanel extends Composite implements IContentProposalProvider
     private Menu historyMenu;
     private boolean filterExpanded = false;
 
-    ResultSetFilterPanel(ResultSetViewer rsv) {
-        super(rsv.getViewerPanel(), SWT.NONE);
+    ResultSetFilterPanel(ResultSetViewer rsv, Composite parent) {
+        super(parent, SWT.NONE);
         this.viewer = rsv;
         CSSUtils.setCSSClass(this, DBStyles.COLORED_BY_CONNECTION_TYPE);
-
-        this.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
         this.sizingGC = new GC(this);
 
@@ -407,7 +406,7 @@ class ResultSetFilterPanel extends Composite implements IContentProposalProvider
             }
 
             displayName = displayName.replaceAll("--.+", "");
-            displayName = TextUtils.compactWhiteSpaces(displayName);
+            displayName = CommonUtils.compactWhiteSpaces(displayName);
             activeDisplayName = CommonUtils.notEmpty(CommonUtils.truncateString(displayName, 200));
             if (CommonUtils.isEmpty(activeDisplayName)) {
                 activeDisplayName = DEFAULT_QUERY_TEXT;
@@ -452,12 +451,15 @@ class ResultSetFilterPanel extends Composite implements IContentProposalProvider
     }
 
     @NotNull
-    private String getActiveQueryText() {
+    public String getActiveQueryText() {
         DBCStatistics statistics = viewer.getModel().getStatistics();
         String queryText = statistics == null ? null : statistics.getQueryText();
         if (queryText == null || queryText.isEmpty()) {
             DBSDataContainer dataContainer = viewer.getDataContainer();
             if (dataContainer != null) {
+                if (dataContainer instanceof SQLQueryContainer) {
+                    return ((SQLQueryContainer) dataContainer).getQuery().getText();
+                }
                 return dataContainer.getName();
             }
             queryText = DEFAULT_QUERY_TEXT;

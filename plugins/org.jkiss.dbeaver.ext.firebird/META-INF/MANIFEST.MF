@@ -2,15 +2,10 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %Bundle-Name
 Bundle-SymbolicName: org.jkiss.dbeaver.ext.firebird;singleton:=true
-Bundle-Version: 1.0.106.qualifier
-Bundle-Release-Date: 20190325
-Require-Bundle: org.eclipse.ui,
- org.eclipse.core.runtime,
- org.eclipse.ui.views,
- org.eclipse.jface,
- org.eclipse.jface.text,
- org.jkiss.dbeaver.core,
- org.eclipse.ui.workbench.texteditor,
+Bundle-Version: 1.0.108.qualifier
+Bundle-Release-Date: 20190422
+Require-Bundle: org.eclipse.core.runtime,
+ org.jkiss.dbeaver.model,
  org.jkiss.dbeaver.ext.generic
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8

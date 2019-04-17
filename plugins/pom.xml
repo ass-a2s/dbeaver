@@ -14,6 +14,7 @@
 
     <modules>
         <module>org.jkiss.dbeaver.model</module>
+        <module>org.jkiss.dbeaver.registry</module>
         <module>org.jkiss.dbeaver.core</module>
         <module>org.jkiss.dbeaver.ui</module>
         <module>org.jkiss.dbeaver.ui.editors.acl</module>
@@ -35,6 +36,9 @@
         <module>org.jkiss.dbeaver.core.application</module>
         <module>org.jkiss.dbeaver.core.eclipse</module>
 
+        <module>org.jkiss.dbeaver.ext.generic</module>
+        <module>org.jkiss.dbeaver.ext.generic.ui</module>
+
         <module>org.jkiss.dbeaver.ext.athena</module>
         <module>org.jkiss.dbeaver.ext.bigquery</module>
         <module>org.jkiss.dbeaver.ext.clickhouse</module>
@@ -44,7 +48,6 @@
         <module>org.jkiss.dbeaver.ext.erd</module>
         <module>org.jkiss.dbeaver.ext.es.ui</module>
         <module>org.jkiss.dbeaver.ext.firebird</module>
-        <module>org.jkiss.dbeaver.ext.generic</module>
         <module>org.jkiss.dbeaver.ext.greenplum</module>
         <module>org.jkiss.dbeaver.ext.import_config</module>
         <module>org.jkiss.dbeaver.ext.format.sqlworkbenchj</module>
@@ -61,6 +64,7 @@
         <module>org.jkiss.dbeaver.ext.phoenix</module>
 
         <module>org.jkiss.dbeaver.ext.postgresql</module>
+        <module>org.jkiss.dbeaver.ext.postgresql.ui</module>
         <module>org.jkiss.dbeaver.ext.postgresql.debug.core</module>
         <module>org.jkiss.dbeaver.ext.postgresql.debug.ui</module>
 

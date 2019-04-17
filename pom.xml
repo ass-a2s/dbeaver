@@ -9,18 +9,18 @@
     <packaging>pom</packaging>
 
     <properties>
-        <dbeaver-version>6.0.1</dbeaver-version>
+        <dbeaver-version>6.0.3</dbeaver-version>
         <dbeaver-product>DBeaver</dbeaver-product>
         <tycho-version>1.1.0</tycho-version>
         <tycho-versions-version>0.26.0</tycho-versions-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 
-        <!-- SimRel 2018-12 -->
-        <eclipse-p2-repo.url>http://download.eclipse.org/releases/2018-12/</eclipse-p2-repo.url>
+        <!-- SimRel 2019-03 -->
+        <eclipse-p2-repo.url>http://download.eclipse.org/releases/2019-03/</eclipse-p2-repo.url>
         <!-- Orbit. From Photon because we need com.ibm.icu.base -->
         <orbit-p2-repo.url>http://download.eclipse.org/tools/orbit/downloads/drops/R20180330011457/repository</orbit-p2-repo.url>
-        <!-- DBeaver Maven dependencies -->
+        <!-- DBeaver Maven dependencies (see product/localRepository for details) -->
         <local-p2-repo.url>https://dbeaver.io/eclipse-repo</local-p2-repo.url>
 
         <key.storage.path>/etc/</key.storage.path>
@@ -55,11 +55,6 @@
         <repository>
             <id>local-contrib</id>
             <url>${local-p2-repo.url}</url>
-            <layout>p2</layout>
-        </repository>
-        <repository>
-            <id>eclipse-color-theme</id>
-            <url>http://eclipse-color-theme.github.com/update</url>
             <layout>p2</layout>
         </repository>
     </repositories>
@@ -306,6 +301,20 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
+<!--
+        <dependency>
+          <groupId>org.powermock</groupId>
+          <artifactId>powermock-api-mockito</artifactId>
+          <version>1.6.6</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.powermock</groupId>
+          <artifactId>powermock-module-junit4</artifactId>
+          <version>1.6.6</version>
+          <scope>test</scope>
+        </dependency>
+-->
     </dependencies>
 
 </project>

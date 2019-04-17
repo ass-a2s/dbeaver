@@ -65,8 +65,8 @@ public class PostgreTableForeignKey extends PostgreTableConstraintBase implement
     private DBSForeignKeyModifyRule updateRule;
     private DBSForeignKeyModifyRule deleteRule;
     private DBSEntityConstraint refConstraint;
+    private PostgreTableBase refTable;
     private final List<PostgreTableForeignKeyColumn> columns = new ArrayList<>();
-    private final PostgreTableBase refTable;
 
     public PostgreTableForeignKey(
         @NotNull PostgreTableBase table,
@@ -102,7 +102,7 @@ public class PostgreTableForeignKey extends PostgreTableConstraintBase implement
     {
         super(table, null, DBSEntityConstraintType.FOREIGN_KEY);
         this.refConstraint = refConstraint;
-        this.refTable = (PostgreTableBase) refConstraint.getParentObject();
+        this.refTable = refConstraint == null ? null : (PostgreTableBase) refConstraint.getParentObject();
         this.matchType = MatchType.s;
         this.updateRule = updateRule;
         this.deleteRule = deleteRule;
@@ -135,6 +135,11 @@ public class PostgreTableForeignKey extends PostgreTableConstraintBase implement
         return refConstraint;
     }
 
+    public void setReferencedConstraint(DBSEntityConstraint refConstraint) {
+        this.refConstraint = refConstraint;
+        this.refTable = refConstraint == null ? null : (PostgreTableBase) refConstraint.getParentObject();
+    }
+
     @Property(viewable = true, specific = true, order = 54)
     public MatchType getMatchType() {
         return matchType;
@@ -147,11 +152,19 @@ public class PostgreTableForeignKey extends PostgreTableConstraintBase implement
         return deleteRule;
     }
 
+    public void setDeleteRule(DBSForeignKeyModifyRule deleteRule) {
+        this.deleteRule = deleteRule;
+    }
+
     @NotNull
     @Override
     @Property(viewable = true, specific = true, order = 56)
     public DBSForeignKeyModifyRule getUpdateRule() {
         return updateRule;
+    }
+
+    public void setUpdateRule(DBSForeignKeyModifyRule updateRule) {
+        this.updateRule = updateRule;
     }
 
     @Nullable

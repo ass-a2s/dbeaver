@@ -26,10 +26,8 @@ import org.jkiss.dbeaver.model.exec.DBCResultSet;
 import org.jkiss.dbeaver.model.exec.DBCSession;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 import org.jkiss.dbeaver.tools.transfer.stream.IStreamDataExporterSite;
-import org.jkiss.dbeaver.ui.TextUtils;
 import org.jkiss.utils.CommonUtils;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +42,6 @@ public class DataExporterTXT extends StreamExporterAbstract {
     private static final String PROP_DELIM_LEADING = "delimLeading";
     private static final String PROP_DELIM_TRAILING = "delimTrailing";
 
-    private PrintWriter out;
     private List<DBDAttributeBinding> columns;
     private String tableName;
     private int maxColumnSize = 100;
@@ -57,7 +54,6 @@ public class DataExporterTXT extends StreamExporterAbstract {
     @Override
     public void init(IStreamDataExporterSite site) throws DBException {
         super.init(site);
-        out = site.getWriter();
         Map<Object, Object> properties = site.getProperties();
         this.maxColumnSize = CommonUtils.toInt(properties.get(PROP_MAX_COLUMN_LENGTH), 100);
         this.showNulls = CommonUtils.getBoolean(properties.get(PROP_SHOW_NULLS), false);
@@ -67,7 +63,6 @@ public class DataExporterTXT extends StreamExporterAbstract {
 
     @Override
     public void dispose() {
-        out = null;
         super.dispose();
     }
 
@@ -126,7 +121,7 @@ public class DataExporterTXT extends StreamExporterAbstract {
         }
         if (delimTrailing) txt.append("|");
         txt.append("\n");
-        out.print(txt);
+        getWriter().print(txt);
     }
 
     @Override
@@ -147,7 +142,7 @@ public class DataExporterTXT extends StreamExporterAbstract {
         }
         if (delimTrailing) txt.append("|");
         txt.append("\n");
-        out.print(txt);
+        getWriter().print(txt);
     }
 
     @Override
@@ -160,7 +155,7 @@ public class DataExporterTXT extends StreamExporterAbstract {
         if (showNulls && displayString.isEmpty() && DBUtils.isNullValue(value)) {
             return DBConstants.NULL_VALUE_LABEL;
         }
-        return TextUtils.getSingleLineString(displayString);
+        return CommonUtils.getSingleLineString(displayString);
     }
 
 }

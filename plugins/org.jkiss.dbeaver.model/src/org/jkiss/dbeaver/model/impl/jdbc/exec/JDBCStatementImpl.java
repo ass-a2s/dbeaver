@@ -30,6 +30,7 @@ import org.jkiss.dbeaver.model.impl.jdbc.JDBCUtils;
 import org.jkiss.dbeaver.model.messages.ModelMessages;
 import org.jkiss.dbeaver.model.qm.QMUtils;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
+import org.jkiss.dbeaver.model.sql.DBSQLException;
 import org.jkiss.utils.CommonUtils;
 
 import java.sql.ResultSet;
@@ -137,7 +138,7 @@ public class JDBCStatementImpl<STATEMENT extends Statement> implements JDBCState
             return execute(query);
         }
         catch (SQLException e) {
-            throw new DBCException(e, connection.getDataSource());
+            throw new DBSQLException(query, e, connection.getDataSource());
         }
     }
 
@@ -159,7 +160,7 @@ public class JDBCStatementImpl<STATEMENT extends Statement> implements JDBCState
             return executeBatch();
         }
         catch (SQLException e) {
-            throw new DBCException(e, connection.getDataSource());
+            throw new DBSQLException(query, e, connection.getDataSource());
         }
     }
 
@@ -640,6 +641,15 @@ public class JDBCStatementImpl<STATEMENT extends Statement> implements JDBCState
     public void setStatementTimeout(int timeout) throws DBCException {
         try {
             getOriginal().setQueryTimeout(timeout);
+        } catch (SQLException e) {
+            throw new DBCException(e, connection.getDataSource());
+        }
+    }
+
+    @Override
+    public void setResultsFetchSize(int fetchSize) throws DBCException {
+        try {
+            getOriginal().setFetchSize(fetchSize);
         } catch (SQLException e) {
             throw new DBCException(e, connection.getDataSource());
         }

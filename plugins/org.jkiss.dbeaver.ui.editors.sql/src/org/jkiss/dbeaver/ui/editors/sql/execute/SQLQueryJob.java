@@ -52,13 +52,13 @@ import org.jkiss.dbeaver.runtime.sql.SQLQueryListener;
 import org.jkiss.dbeaver.runtime.sql.SQLResultsConsumer;
 import org.jkiss.dbeaver.runtime.sql.SQLScriptCommitType;
 import org.jkiss.dbeaver.runtime.sql.SQLScriptErrorHandling;
+import org.jkiss.dbeaver.runtime.ui.DBPPlatformUI;
 import org.jkiss.dbeaver.ui.UIConfirmation;
 import org.jkiss.dbeaver.ui.UITask;
 import org.jkiss.dbeaver.ui.UIUtils;
 import org.jkiss.dbeaver.ui.controls.resultset.ResultSetPreferences;
 import org.jkiss.dbeaver.ui.dialogs.ConfirmationDialog;
 import org.jkiss.dbeaver.ui.dialogs.exec.ExecutionQueueErrorJob;
-import org.jkiss.dbeaver.ui.dialogs.exec.ExecutionQueueErrorResponse;
 import org.jkiss.dbeaver.ui.editors.sql.SQLPreferenceConstants;
 import org.jkiss.dbeaver.ui.editors.sql.dialogs.SQLQueryParameterBindDialog;
 import org.jkiss.dbeaver.ui.editors.sql.internal.SQLEditorActivator;
@@ -109,6 +109,7 @@ public class SQLQueryJob extends DataSourceJob
     private SQLQuery lastGoodQuery;
 
     private boolean skipConfirmation;
+    private int fetchSize;
     private long readFlags;
 
     public SQLQueryJob(
@@ -167,6 +168,10 @@ public class SQLQueryJob extends DataSourceJob
         this.rsMaxRows = maxRows;
     }
 
+    public void setFetchSize(int fetchSize) {
+        this.fetchSize = fetchSize;
+    }
+
     public void setReadFlags(long readFlags) {
         this.readFlags = readFlags;
     }
@@ -219,7 +224,7 @@ public class SQLQueryJob extends DataSourceJob
                         // Ask to continue
                         log.error(lastError);
                         boolean isQueue = queryNum < queries.size() - 1;
-                        ExecutionQueueErrorResponse response = ExecutionQueueErrorJob.showError(
+                        DBPPlatformUI.UserResponse response = ExecutionQueueErrorJob.showError(
                             isQueue ? "SQL script execution" : "SQL query execution",
                             lastError,
                             isQueue);
@@ -440,7 +445,11 @@ public class SQLQueryJob extends DataSourceJob
             session,
             DBCStatementType.SCRIPT,
             sqlQuery,
-            rsOffset, rsMaxRows);
+            rsOffset,
+            rsMaxRows);
+        if (fetchSize > 0) {
+            dbcStatement.setResultsFetchSize(fetchSize);
+        }
         curStatement = dbcStatement;
 
         int statementTimeout = getDataSourceContainer().getPreferenceStore().getInt(SQLPreferenceConstants.STATEMENT_TIMEOUT);
@@ -600,7 +609,7 @@ public class SQLQueryJob extends DataSourceJob
         fetchQueryData(session, fakeResultSet, resultInfo, executeResult, dataReceiver, false);
     }
 
-    private boolean prepareStatementParameters(SQLQuery sqlStatement) {
+    public boolean prepareStatementParameters(SQLQuery sqlStatement) {
         // Bind parameters
         List<SQLQueryParameter> parameters = sqlStatement.getParameters();
         if (CommonUtils.isEmpty(parameters)) {
@@ -834,20 +843,18 @@ public class SQLQueryJob extends DataSourceJob
 
         statistics = new DBCStatistics();
         resultSetNumber = resultNumber;
-        session.getProgressMonitor().beginTask(CommonUtils.truncateString(query.getText(), 512), 1);
-        try {
-            boolean result = executeSingleQuery(session, query, true);
-            if (!result && lastError != null) {
-                if (lastError instanceof DBCException) {
-                    throw (DBCException) lastError;
-                } else {
-                    throw new DBCException(lastError, getExecutionContext().getDataSource());
-                }
-            } else if (result && statistics.getStatementsCount() > 0) {
-                showExecutionResult(session);
+        //session.getProgressMonitor().beginTask(CommonUtils.truncateString(query.getText(), 512), 1);
+        session.getProgressMonitor().subTask(CommonUtils.truncateString(query.getText(), 512));
+
+        boolean result = executeSingleQuery(session, query, true);
+        if (!result && lastError != null) {
+            if (lastError instanceof DBCException) {
+                throw (DBCException) lastError;
+            } else {
+                throw new DBCException(lastError, getExecutionContext().getDataSource());
             }
-        } finally {
-            session.getProgressMonitor().done();
+        } else if (result && statistics.getStatementsCount() > 0) {
+            showExecutionResult(session);
         }
     }
 
@@ -931,4 +938,7 @@ public class SQLQueryJob extends DataSourceJob
         }.execute();
     }
 
+    public boolean transformQueryWithParameters(SQLQuery query) {
+        return prepareStatementParameters(query);
+    }
 }

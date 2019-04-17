@@ -169,12 +169,24 @@ public class PostgreDatabase extends JDBCRemoteInstance<PostgreDataSource>
         return initialOwner;
     }
 
+    public void setInitialOwner(PostgreRole initialOwner) {
+        this.initialOwner = initialOwner;
+    }
+
     public PostgreTablespace getInitialTablespace() {
         return initialTablespace;
     }
 
+    public void setInitialTablespace(PostgreTablespace initialTablespace) {
+        this.initialTablespace = initialTablespace;
+    }
+
     public PostgreCharset getInitialEncoding() {
         return initialEncoding;
+    }
+
+    public void setInitialEncoding(PostgreCharset initialEncoding) {
+        this.initialEncoding = initialEncoding;
     }
 
     @Override
@@ -280,6 +292,10 @@ public class PostgreDatabase extends JDBCRemoteInstance<PostgreDataSource>
 
     public String getTemplateName() {
         return templateName;
+    }
+
+    public void setTemplateName(String templateName) {
+        this.templateName = templateName;
     }
 
     @Nullable

@@ -20,27 +20,32 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.*;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
-import org.eclipse.ui.IActionDelegate;
-import org.eclipse.ui.IWorkbenchActionConstants;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.*;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 import org.eclipse.ui.actions.ContributionItemFactory;
 import org.eclipse.ui.application.ActionBarAdvisor;
 import org.eclipse.ui.application.IActionBarConfigurer;
+import org.eclipse.ui.commands.ICommandImageService;
 import org.eclipse.ui.ide.IDEActionFactory;
 import org.eclipse.ui.internal.WorkbenchPlugin;
+import org.eclipse.ui.internal.commands.CommandImageManager;
+import org.eclipse.ui.internal.commands.CommandImageService;
 import org.eclipse.ui.internal.registry.ActionSetRegistry;
 import org.eclipse.ui.internal.registry.IActionSetDescriptor;
 import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.core.CoreMessages;
 import org.jkiss.dbeaver.core.application.about.AboutBoxAction;
+import org.jkiss.dbeaver.core.application.actions.EmergentExitAction;
+import org.jkiss.dbeaver.core.application.actions.ResetUISettingsAction;
 import org.jkiss.dbeaver.core.application.update.CheckForUpdateAction;
+import org.jkiss.dbeaver.model.DBIcon;
 import org.jkiss.dbeaver.ui.ActionUtils;
+import org.jkiss.dbeaver.ui.DBeaverIcons;
 import org.jkiss.dbeaver.ui.IActionConstants;
-import org.jkiss.dbeaver.ui.actions.common.EmergentExitAction;
+import org.jkiss.dbeaver.ui.UIIcon;
 import org.jkiss.dbeaver.ui.actions.common.ToggleViewAction;
 import org.jkiss.dbeaver.ui.controls.StatusLineContributionItemEx;
 import org.jkiss.dbeaver.ui.navigator.database.DatabaseNavigatorView;
@@ -63,7 +68,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor
 
     public static final String M_ALT_HELP = "dbhelp";
 
-    protected IActionDelegate emergentExitAction;
     protected IActionDelegate aboutAction;
     protected CheckForUpdateAction checkUpdatesAction;
     protected IWorkbenchAction showHelpAction;
@@ -121,7 +125,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor
         //aboutAction = ActionFactory.ABOUT.create(window);
         //register(aboutAction);
         aboutAction = new AboutBoxAction(window);
-        emergentExitAction = new EmergentExitAction(window);
         register(showHelpAction = ActionFactory.HELP_CONTENTS.create(window));
 //        register(searchHelpAction = ActionFactory.HELP_SEARCH.create(window));
 //        register(dynamicHelpAction = ActionFactory.DYNAMIC_HELP.create(window));
@@ -142,8 +145,47 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor
         CheckForUpdateAction.deactivateStandardHandler(window);
     }
 
+
+    private void patchImages() {
+        // We have to patch images manually because using commandImages extension point doesn't guarantee order
+        //WorkbenchImages.declareImage(IWorkbenchGraphicConstants.IMG_WIZBAN_IMPORT_WIZ, DBeaverIcons.getImageDescriptor(UIIcon.IMPORT), true);
+        //WorkbenchImages.declareImage(IWorkbenchGraphicConstants.IMG_WIZBAN_EXPORT_WIZ, DBeaverIcons.getImageDescriptor(UIIcon.EXPORT), true);
+
+        IWorkbenchWindow workbenchWindow = getActionBarConfigurer().getWindowConfigurer().getWindow();
+        if (workbenchWindow != null) {
+            ICommandImageService service = workbenchWindow.getService(ICommandImageService.class);
+            if (service instanceof CommandImageService) {
+                CommandImageService cis = (CommandImageService)service;
+                bindImage(cis, IWorkbenchCommandConstants.FILE_SAVE, UIIcon.SAVE);
+                bindImage(cis, IWorkbenchCommandConstants.FILE_SAVE_AS, UIIcon.SAVE_AS);
+                bindImage(cis, IWorkbenchCommandConstants.FILE_SAVE_ALL, UIIcon.SAVE_ALL);
+
+/*
+                bindImage(cis, IWorkbenchCommandConstants.EDIT_COPY, UIIcon.EDIT_COPY);
+                bindImage(cis, IWorkbenchCommandConstants.EDIT_COPY, UIIcon.EDIT_COPY);
+                bindImage(cis, IWorkbenchCommandConstants.EDIT_COPY, UIIcon.EDIT_COPY);
+                bindImage(cis, IWorkbenchCommandConstants.EDIT_COPY, UIIcon.EDIT_COPY);
+*/
+
+                bindImage(cis, IWorkbenchCommandConstants.FILE_IMPORT, UIIcon.IMPORT);
+                bindImage(cis, IWorkbenchCommandConstants.FILE_EXPORT, UIIcon.EXPORT);
+                bindImage(cis, IWorkbenchCommandConstants.FILE_REFRESH, UIIcon.REFRESH);
+            }
+        }
+    }
+
+    private void bindImage(CommandImageService cis, String commandId, DBIcon icon) {
+        ImageDescriptor id = DBeaverIcons.getImageDescriptor(icon);
+        cis.bind(commandId, CommandImageManager.TYPE_DEFAULT, null, id);
+        cis.bind(commandId, CommandImageManager.TYPE_HOVER, null, id);
+        cis.bind(commandId, CommandImageManager.TYPE_DISABLED, null, (ImageDescriptor) null);
+    }
+
     @Override
     protected void fillMenuBar(IMenuManager menuBar) {
+        patchImages();
+        menuBar.updateAll(true);
+
         // do not use standard help menu to avoid junk provided by platform (like cheat sheets)
         final boolean showAltHelp = isShowAltHelp();
 
@@ -192,7 +234,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor
             fileMenu.add(openWorkspaceAction);
 
             fileMenu.add(new Separator());
-            fileMenu.add(ActionUtils.makeAction(emergentExitAction, null, null, CoreMessages.actions_menu_exit_emergency, null, null));
+            fileMenu.add(new ResetUISettingsAction(workbenchWindow));
+            fileMenu.add(new EmergentExitAction(workbenchWindow));
 
             fileMenu.add(new GroupMarker(IWorkbenchActionConstants.FILE_END));
         }

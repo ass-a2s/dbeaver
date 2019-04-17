@@ -31,8 +31,10 @@ import org.jkiss.dbeaver.ui.dashboard.registry.DashboardRegistry;
 import org.jkiss.dbeaver.ui.dashboard.registry.DashboardViewTypeDescriptor;
 import org.jkiss.dbeaver.ui.dialogs.BaseDialog;
 import org.jkiss.dbeaver.utils.GeneralUtils;
+import org.jkiss.utils.ArrayUtils;
 import org.jkiss.utils.CommonUtils;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -55,6 +57,7 @@ public class DashboardEditDialog extends BaseDialog {
     private Combo dataTypeCombo;
     private Combo calcTypeCombo;
     private Combo valueTypeCombo;
+    private Combo intervalCombo;
     private Combo fetchTypeCombo;
 
     private DBPNamedObject targetDatabase;
@@ -147,12 +150,21 @@ public class DashboardEditDialog extends BaseDialog {
             valueTypeCombo.setText(dashboardDescriptor.getValueType().name());
             valueTypeCombo.setEnabled(!readOnly);
 
+            intervalCombo = UIUtils.createLabelCombo(infoGroup, "Interval", "Values interval", SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+            for (DashboardInterval dvt : DashboardInterval.values()) {
+                intervalCombo.add(dvt.name());
+            }
+            intervalCombo.setText(dashboardDescriptor.getInterval().name());
+            intervalCombo.setEnabled(!readOnly);
+
             fetchTypeCombo = UIUtils.createLabelCombo(infoGroup, "Fetch type", "Values fetch type", SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
             for (DashboardFetchType dft : DashboardFetchType.values()) {
                 fetchTypeCombo.add(dft.name());
             }
             fetchTypeCombo.setText(dashboardDescriptor.getFetchType().name());
             fetchTypeCombo.setEnabled(!readOnly);
+
+            UIUtils.createEmptyLabel(infoGroup, 2, 1);
 
             descriptionText = UIUtils.createLabelText(infoGroup, "Description", CommonUtils.notEmpty(dashboardDescriptor.getDescription()), SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | baseStyle);
             ((GridData) descriptionText.getLayoutData()).heightHint = 30;
@@ -169,9 +181,20 @@ public class DashboardEditDialog extends BaseDialog {
             queryText.setLayoutData(gd);
             UIUtils.createInfoLabel(sqlGroup, "Use blank line as query separator");
 
+            String lineSeparator = GeneralUtils.getDefaultLineSeparator();
+
             StringBuilder sql = new StringBuilder();
             for (DashboardDescriptor.QueryMapping query : dashboardDescriptor.getQueries()) {
-                sql.append(query.getQueryText().trim()).append(GeneralUtils.getDefaultLineSeparator()).append(GeneralUtils.getDefaultLineSeparator());
+                sql.append(query.getQueryText().trim()).append(lineSeparator).append(lineSeparator);
+            }
+            if (dashboardDescriptor.getMapQuery() != null) {
+                sql.append(dashboardDescriptor.getMapQuery().getQueryText()).append(lineSeparator).append(lineSeparator);
+                if (!ArrayUtils.isEmpty(dashboardDescriptor.getMapKeys())) {
+                    sql.append("Map keys: ").append(Arrays.toString(dashboardDescriptor.getMapKeys())).append(lineSeparator);
+                }
+                if (!ArrayUtils.isEmpty(dashboardDescriptor.getMapLabels())) {
+                    sql.append("Map labels: ").append(Arrays.toString(dashboardDescriptor.getMapLabels())).append(lineSeparator);
+                }
             }
             queryText.setText(sql.toString().trim());
         }
@@ -231,6 +254,7 @@ public class DashboardEditDialog extends BaseDialog {
         dashboardDescriptor.setDataType(DashboardDataType.values()[dataTypeCombo.getSelectionIndex()]);
         dashboardDescriptor.setCalcType(DashboardCalcType.values()[calcTypeCombo.getSelectionIndex()]);
         dashboardDescriptor.setValueType(DashboardValueType.values()[valueTypeCombo.getSelectionIndex()]);
+        dashboardDescriptor.setInterval(DashboardInterval.values()[intervalCombo.getSelectionIndex()]);
         dashboardDescriptor.setFetchType(DashboardFetchType.values()[fetchTypeCombo.getSelectionIndex()]);
         dashboardDescriptor.setQueries(queryText.getText().split("\\n\\s*\\n"));
 

@@ -8,8 +8,9 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.jkiss.dbeaver.ext.erd.ERDMessages;
 import org.jkiss.dbeaver.ext.erd.editor.ERDEditorPart;
-import org.jkiss.dbeaver.ext.erd.part.IColorizedPart;
+import org.jkiss.dbeaver.ext.erd.part.ICustomizablePart;
 import org.jkiss.dbeaver.ui.UIUtils;
 
 import java.util.HashMap;
@@ -23,14 +24,14 @@ public class SetPartColorAction extends SelectionAction {
         super(part);
         this.selection = selection;
 
-        this.setText("Set color");
-        this.setToolTipText("Set figure color");
-        this.setId("setFigureColor");
+        this.setText(ERDMessages.erd_tool_color_action_text_set_color);
+        this.setToolTipText(ERDMessages.erd_tool_color_action_tip_text_set_figure_color);
+        this.setId("setFigureColor"); //$NON-NLS-1$
     }
 
     protected boolean calculateEnabled() {
         for (Object item : selection.toArray()) {
-            if (item instanceof IColorizedPart) {
+            if (item instanceof ICustomizablePart) {
                 return true;
             }
         }
@@ -47,7 +48,7 @@ public class SetPartColorAction extends SelectionAction {
 
     private Command createColorCommand(final Object[] objects) {
         return new Command() {
-            private final Map<IColorizedPart, Color> oldColors = new HashMap<>();
+            private final Map<ICustomizablePart, Color> oldColors = new HashMap<>();
             private Color newColor;
             @Override
             public void execute() {
@@ -60,10 +61,10 @@ public class SetPartColorAction extends SelectionAction {
                     }
                     newColor = new Color(Display.getCurrent(), color);
                     for (Object item : objects) {
-                        if (item instanceof IColorizedPart) {
-                            IColorizedPart colorizedPart = (IColorizedPart) item;
+                        if (item instanceof ICustomizablePart) {
+                            ICustomizablePart colorizedPart = (ICustomizablePart) item;
                             oldColors.put(colorizedPart, colorizedPart.getCustomBackgroundColor());
-                            colorizedPart.customizeBackgroundColor(newColor);
+                            colorizedPart.setCustomBackgroundColor(newColor);
                         }
                     }
 
@@ -75,9 +76,9 @@ public class SetPartColorAction extends SelectionAction {
             @Override
             public void undo() {
                 for (Object item : objects) {
-                    if (item instanceof IColorizedPart) {
-                        IColorizedPart colorizedPart = (IColorizedPart) item;
-                        colorizedPart.customizeBackgroundColor(oldColors.get(colorizedPart));
+                    if (item instanceof ICustomizablePart) {
+                        ICustomizablePart colorizedPart = (ICustomizablePart) item;
+                        colorizedPart.setCustomBackgroundColor(oldColors.get(colorizedPart));
                     }
                 }
             }
@@ -85,9 +86,9 @@ public class SetPartColorAction extends SelectionAction {
             @Override
             public void redo() {
                 for (Object item : objects) {
-                    if (item instanceof IColorizedPart) {
-                        IColorizedPart colorizedPart = (IColorizedPart) item;
-                        colorizedPart.customizeBackgroundColor(newColor);
+                    if (item instanceof ICustomizablePart) {
+                        ICustomizablePart colorizedPart = (ICustomizablePart) item;
+                        colorizedPart.setCustomBackgroundColor(newColor);
                     }
                 }
             }

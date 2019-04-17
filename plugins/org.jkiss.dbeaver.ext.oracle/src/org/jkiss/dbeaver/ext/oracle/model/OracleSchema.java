@@ -417,14 +417,25 @@ public class OracleSchema extends OracleGlobalObject implements DBSSchema, DBPRe
         @NotNull
         @Override
         public JDBCStatement prepareLookupStatement(@NotNull JDBCSession session, @NotNull OracleSchema owner, @Nullable OracleTableBase object, @Nullable String objectName) throws SQLException {
+            String tableOper = "=";
+/*
+            // NOTE: we can't use filters here. Because filters are different for tables and views while we have just one cache :(
+            if (object == null && objectName == null) {
+                final DBSObjectFilter tableFilters = session.getDataSource().getContainer().getObjectFilter(OracleTableBase.class, owner, false);
+                if (tableFilters != null && tableFilters.hasSingleMask()) {
+                    objectName = tableFilters.getSingleMask();
+                    tableOper = " LIKE ";
+                }
+            }
+*/
             final JDBCPreparedStatement dbStat = session.prepareStatement(
                 "\tSELECT " + OracleUtils.getSysCatalogHint(owner.getDataSource()) + " t.OWNER,t.TABLE_NAME as TABLE_NAME,'TABLE' as OBJECT_TYPE,'VALID' as STATUS,t.TABLE_TYPE_OWNER,t.TABLE_TYPE,t.TABLESPACE_NAME,t.PARTITIONED,t.IOT_TYPE,t.IOT_NAME,t.TEMPORARY,t.SECONDARY,t.NESTED,t.NUM_ROWS \n" +
                     "\tFROM " + OracleUtils.getAdminAllViewPrefix(session.getProgressMonitor(), owner.getDataSource(), "ALL_TABLES") + " t\n" +
-                    "\tWHERE t.OWNER=? AND NESTED='NO'" + (object == null && objectName == null ? "": " AND t.TABLE_NAME=?") + "\n" +
+                    "\tWHERE t.OWNER=? AND NESTED='NO'" + (object == null && objectName == null ? "": " AND t.TABLE_NAME"+ tableOper + "?") + "\n" +
                 "UNION ALL\n" +
                     "\tSELECT " + OracleUtils.getSysCatalogHint(owner.getDataSource()) + " o.OWNER,o.OBJECT_NAME as TABLE_NAME,'VIEW' as OBJECT_TYPE,o.STATUS,NULL,NULL,NULL,'NO',NULL,NULL,o.TEMPORARY,o.SECONDARY,'NO',0 \n" +
                     "\tFROM " + OracleUtils.getAdminAllViewPrefix(session.getProgressMonitor(), owner.getDataSource(), "OBJECTS") + " o \n" +
-                    "\tWHERE o.OWNER=? AND o.OBJECT_TYPE='VIEW'" + (object == null && objectName == null  ? "": " AND o.OBJECT_NAME=?") + "\n"
+                    "\tWHERE o.OWNER=? AND o.OBJECT_TYPE='VIEW'" + (object == null && objectName == null  ? "": " AND o.OBJECT_NAME" + tableOper + "?") + "\n"
                 );
             int index = 1;
             dbStat.setString(index++, owner.getName());
@@ -457,8 +468,8 @@ public class OracleSchema extends OracleGlobalObject implements DBSSchema, DBPRe
             StringBuilder sql = new StringBuilder(500);
             sql
                 .append("SELECT ").append(OracleUtils.getSysCatalogHint(owner.getDataSource())).append("\nc.* " +
-                    "FROM SYS.").append(colsView).append(" c\n" +
-//                    "LEFT OUTER JOIN SYS.ALL_COL_COMMENTS cc ON CC.OWNER=c.OWNER AND cc.TABLE_NAME=c.TABLE_NAME AND cc.COLUMN_NAME=c.COLUMN_NAME\n" +
+                    "FROM ").append(OracleUtils.getSysSchemaPrefix(owner.getDataSource())).append(colsView).append(" c\n" +
+//                    "LEFT OUTER JOIN " + OracleUtils.getSysSchemaPrefix(getDataSource()) + "ALL_COL_COMMENTS cc ON CC.OWNER=c.OWNER AND cc.TABLE_NAME=c.TABLE_NAME AND cc.COLUMN_NAME=c.COLUMN_NAME\n" +
                     "WHERE c.OWNER=?");
             if (forTable != null) {
                 sql.append(" AND c.TABLE_NAME=?");
@@ -1001,8 +1012,8 @@ public class OracleSchema extends OracleGlobalObject implements DBSSchema, DBPRe
             final boolean isPublic = owner.isPublic();
             JDBCPreparedStatement dbStat = session.prepareStatement(
                 isPublic ?
-                    "SELECT * FROM SYS.USER_RECYCLEBIN" :
-                    "SELECT * FROM SYS.DBA_RECYCLEBIN WHERE OWNER=?");
+                    "SELECT * FROM " + OracleUtils.getSysSchemaPrefix(owner.getDataSource()) + "USER_RECYCLEBIN" :
+                    "SELECT * FROM " + OracleUtils.getSysSchemaPrefix(owner.getDataSource())+ "DBA_RECYCLEBIN WHERE OWNER=?");
             if (!isPublic) {
                 dbStat.setString(1, owner.getName());
             }

@@ -40,7 +40,9 @@ public class DBNRoot extends DBNNode implements DBNContainer, DBPProjectListener
     {
         super();
         this.model = model;
-        model.getPlatform().getProjectManager().addProjectListener(this);
+        if (model.isGlobal()) {
+            model.getPlatform().getProjectManager().addProjectListener(this);
+        }
     }
 
     @Override
@@ -50,7 +52,9 @@ public class DBNRoot extends DBNNode implements DBNContainer, DBPProjectListener
             project.dispose(reflect);
         }
         projects = new DBNProject[0];
-        model.getPlatform().getProjectManager().removeProjectListener(this);
+        if (model.isGlobal()) {
+            model.getPlatform().getProjectManager().removeProjectListener(this);
+        }
     }
 
     @Override
@@ -131,7 +135,7 @@ public class DBNRoot extends DBNNode implements DBNContainer, DBPProjectListener
 
     @Override
     public String getNodeItemPath() {
-        return null;
+        return "";
     }
 
     public DBNProject getProject(IProject project)

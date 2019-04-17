@@ -102,6 +102,7 @@ public class UIUtils {
     public static final String INLINE_WIDGET_EDITOR_ID = "org.jkiss.dbeaver.ui.InlineWidgetEditor";
 
     private static SharedTextColors sharedTextColors = new SharedTextColors();
+    private static SharedFonts sharedFonts = new SharedFonts();
 
     public static VerifyListener getIntegerVerifyListener(Locale locale)
     {
@@ -1428,6 +1429,10 @@ public class UIUtils {
         return sharedTextColors;
     }
 
+    public static SharedFonts getSharedFonts() {
+        return sharedFonts;
+    }
+
     public static void run(
         IRunnableContext runnableContext,
         boolean fork,
@@ -1624,7 +1629,7 @@ public class UIUtils {
         if (CommonUtils.isEmpty(rgbString)) {
             return null;
         }
-        return sharedTextColors.getColor(StringConverter.asRGB(rgbString));
+        return getColorByRGB(rgbString);
     }
 
     public static Shell createCenteredShell(Shell parent) {
@@ -1778,4 +1783,23 @@ public class UIUtils {
         return greyLevel(rgb) < 128;
     }
 
+    public static void openWebBrowser(String url)
+    {
+        url = url.trim();
+        if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("ftp://")) {
+            url = "http://" + url;
+        }
+        Program.launch(url);
+    }
+
+    public static void setBackgroundForAll(Control control, Color color) {
+        if (!(control instanceof Button)) {
+            control.setBackground(color);
+        }
+        if (control instanceof Composite) {
+            for (Control ch : ((Composite) control).getChildren()) {
+                setBackgroundForAll(ch, color);
+            }
+        }
+    }
 }

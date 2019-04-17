@@ -576,14 +576,14 @@ public abstract class SQLEditorBase extends BaseTextEditor implements DBPContext
         syntaxManager.init(dialect, getActivePreferenceStore());
         ruleManager.refreshRules(getDataSource(), getEditorInput());
 
-        Document document = getDocument();
-        if (document != null) {
+        IDocument document = getDocument();
+        if (document instanceof IDocumentExtension3) {
             IDocumentPartitioner partitioner = new FastPartitioner(
                 new SQLPartitionScanner(dialect),
                 SQLPartitionScanner.SQL_CONTENT_TYPES);
             partitioner.connect(document);
             try {
-                document.setDocumentPartitioner(SQLPartitionScanner.SQL_PARTITIONING, partitioner);
+                ((IDocumentExtension3)document).setDocumentPartitioner(SQLPartitionScanner.SQL_PARTITIONING, partitioner);
             } catch (Throwable e) {
                 log.warn("Error setting SQL partitioner", e); //$NON-NLS-1$
             }
@@ -624,7 +624,7 @@ public abstract class SQLEditorBase extends BaseTextEditor implements DBPContext
     }
 
     public boolean hasActiveQuery() {
-        Document document = getDocument();
+        IDocument document = getDocument();
         if (document == null) {
             return false;
         }
@@ -683,12 +683,12 @@ public abstract class SQLEditorBase extends BaseTextEditor implements DBPContext
     }
 
     public SQLScriptElement extractQueryAtPos(int currentPos) {
-        Document document = getDocument();
+        IDocument document = getDocument();
         if (document == null || document.getLength() == 0) {
             return null;
         }
         final int docLength = document.getLength();
-        IDocumentPartitioner partitioner = document.getDocumentPartitioner(SQLPartitionScanner.SQL_PARTITIONING);
+        IDocumentPartitioner partitioner = document instanceof IDocumentExtension3 ? ((IDocumentExtension3)document).getDocumentPartitioner(SQLPartitionScanner.SQL_PARTITIONING) : null;
         if (partitioner != null) {
             // Move to default partition. We don't want to be in the middle of multi-line comment or string
             while (currentPos < docLength && isMultiCommentPartition(partitioner, currentPos)) {
@@ -772,7 +772,7 @@ public abstract class SQLEditorBase extends BaseTextEditor implements DBPContext
             return null;
         }
 
-        Document document = getDocument();
+        IDocument document = getDocument();
         if (document == null) {
             return null;
         }
@@ -866,6 +866,16 @@ public abstract class SQLEditorBase extends BaseTextEditor implements DBPContext
         return queryList;
     }
 
+    private static class ScriptBlockInfo {
+        final ScriptBlockInfo parent;
+        boolean isHeader; // block started by DECLARE, FUNCTION, etc
+
+        public ScriptBlockInfo(ScriptBlockInfo parent, boolean isHeader) {
+            this.parent = parent;
+            this.isHeader = isHeader;
+        }
+    }
+
     protected SQLScriptElement parseQuery(final IDocument document, final int startPos, final int endPos, final int currentPos, final boolean scriptMode, final boolean keepDelimiters) {
         if (endPos - startPos <= 0) {
             return null;
@@ -876,10 +886,9 @@ public abstract class SQLEditorBase extends BaseTextEditor implements DBPContext
         boolean useBlankLines = !scriptMode && syntaxManager.isBlankLineDelimiter();
         ruleManager.setRange(document, startPos, endPos - startPos);
         int statementStart = startPos;
-        int bracketDepth = 0;
-        boolean hasBlocks = false;
         boolean hasValuableTokens = false;
-        boolean hasBlockHeader = false;
+        ScriptBlockInfo curBlock = null;
+        boolean hasBlocks = false;
         String blockTogglePattern = null;
         int lastTokenLineFeeds = 0;
         int prevNotEmptyTokenType = SQLToken.T_UNKNOWN;
@@ -917,9 +926,11 @@ public abstract class SQLEditorBase extends BaseTextEditor implements DBPContext
                     try {
                         char aChar = document.getChar(tokenOffset);
                         if (aChar == '(' || aChar == '{' || aChar == '[') {
-                            bracketDepth++;
+                            curBlock = new ScriptBlockInfo(curBlock, false);
                         } else if (aChar == ')' || aChar == '}' || aChar == ']') {
-                            bracketDepth--;
+                            if (curBlock != null) {
+                                curBlock = curBlock.parent;
+                            }
                         }
                     } catch (BadLocationException e) {
                         log.warn(e);
@@ -934,9 +945,8 @@ public abstract class SQLEditorBase extends BaseTextEditor implements DBPContext
                 }
 
                 if (tokenType == SQLToken.T_BLOCK_HEADER) {
-                    bracketDepth++;
+                    curBlock = new ScriptBlockInfo(curBlock, true);
                     hasBlocks = true;
-                    hasBlockHeader = true;
                 } else if (tokenType == SQLToken.T_BLOCK_TOGGLE) {
                     String togglePattern;
                     try {
@@ -947,30 +957,30 @@ public abstract class SQLEditorBase extends BaseTextEditor implements DBPContext
                     }
                     // Second toggle pattern must be the same as first one.
                     // Toggles can be nested (PostgreSQL) and we need to count only outer
-                    if (bracketDepth == 1 && togglePattern.equals(blockTogglePattern)) {
-                        bracketDepth--;
+                    if (curBlock != null && curBlock.parent == null && togglePattern.equals(blockTogglePattern)) {
+                        curBlock = curBlock.parent;
                         blockTogglePattern = null;
-                    } else if (bracketDepth == 0 && blockTogglePattern == null) {
-                        bracketDepth++;
+                    } else if (curBlock == null && blockTogglePattern == null) {
+                        curBlock = new ScriptBlockInfo(curBlock, false);
                         blockTogglePattern = togglePattern;
                     } else {
                         log.debug("Block toggle token inside another block. Can't process it");
                     }
                     hasBlocks = true;
                 } else if (tokenType == SQLToken.T_BLOCK_BEGIN) {
-                    if (!hasBlockHeader) {
-                        bracketDepth++;
+                    if (curBlock == null || !curBlock.isHeader) {
+                        curBlock = new ScriptBlockInfo(curBlock, false);
+                    } else if (curBlock != null) {
+                        curBlock.isHeader = false;
                     }
                     hasBlocks = true;
-                    hasBlockHeader = false;
-                } else if (bracketDepth > 0 && tokenType == SQLToken.T_BLOCK_END) {
+                } else if (curBlock != null && tokenType == SQLToken.T_BLOCK_END) {
                     // Sometimes query contains END clause without BEGIN. E.g. CASE, IF, etc.
                     // This END doesn't mean block
-                    if (hasBlocks) {
-                        bracketDepth--;
+                    if (curBlock != null) {
+                        curBlock = curBlock.parent;
                     }
-                    hasBlockHeader = false;
-                } else if (isDelimiter && bracketDepth > 0) {
+                } else if (isDelimiter && curBlock != null) {
                     // Delimiter in some brackets - ignore it
                     continue;
                 } else if (tokenType == SQLToken.T_SET_DELIMITER || tokenType == SQLToken.T_CONTROL) {
@@ -1289,7 +1299,7 @@ public abstract class SQLEditorBase extends BaseTextEditor implements DBPContext
 
     @Override
     public boolean visualizeError(@NotNull DBRProgressMonitor monitor, @NotNull Throwable error) {
-        Document document = getDocument();
+        IDocument document = getDocument();
         SQLQuery query = new SQLQuery(getDataSource(), document.get(), 0, document.getLength());
         return scrollCursorToError(monitor, query, error);
     }
@@ -1318,7 +1328,7 @@ public abstract class SQLEditorBase extends BaseTextEditor implements DBPContext
                         }
                     } else {
                         // Line + position
-                        Document document = getDocument();
+                        IDocument document = getDocument();
                         if (document != null) {
                             int startLine = document.getLineOfOffset(queryStartOffset);
                             int errorOffset = document.getLineOffset(startLine + pos.line);

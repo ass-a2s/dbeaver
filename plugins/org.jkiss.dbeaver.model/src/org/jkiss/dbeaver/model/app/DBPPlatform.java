@@ -42,7 +42,11 @@ public interface DBPPlatform
     @NotNull
     DBPApplication getApplication();
 
+    @NotNull
     DBPWorkspace getWorkspace();
+
+    @NotNull
+    DBPResourceHandler getDefaultResourceHandler();
 
     @NotNull
     DBPPlatformLanguage getLanguage();
@@ -94,6 +98,9 @@ public interface DBPPlatform
 
     @NotNull
     File getConfigurationFile(String fileName);
+
+    @NotNull
+    File getCustomDriversHome();
 
     boolean isShuttingDown();
 

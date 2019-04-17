@@ -65,8 +65,22 @@ public class SQLServerDialect extends JDBCSQLDialect {
     }
 
     @Override
+    public boolean validIdentifierPart(char c, boolean quoted) {
+        // SQL Server: All extra characters can be used in unquoted form
+        return Character.isLetter(c) || Character.isDigit(c) || c == '_' || validCharacters.indexOf(c) != -1;
+
+    }
+
+    @Override
     public String[] getExecuteKeywords() {
         return EXEC_KEYWORDS;
+    }
+
+    @Override
+    public String[] getParametersPrefixes() {
+        return super.getParametersPrefixes();
+        // Do not use @ as prefix - it can be used as a regular SQL construct (#5674)
+        //return new String[] { "@" };
     }
 
     @Override

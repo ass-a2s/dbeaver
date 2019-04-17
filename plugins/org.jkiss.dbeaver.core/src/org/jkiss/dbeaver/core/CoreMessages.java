@@ -27,7 +27,6 @@ public class CoreMessages extends NLS {
 	public static String actions_menu_database;
 	public static String actions_menu_edit;
 	public static String actions_menu_edit_ContentFormat;
-	public static String actions_menu_exit_emergency;
 	public static String actions_menu_file;
 	public static String actions_menu_help;
 	public static String actions_menu_navigate;
@@ -116,8 +115,6 @@ public class CoreMessages extends NLS {
 	public static String dialog_connection_auth_group_user_cridentials;
 	public static String dialog_connection_auth_label_password;
 	public static String dialog_connection_auth_label_username;
-	public static String dialog_connection_auth_title;
-	public static String dialog_connection_auth_title_for_handler;
 	public static String dialog_connection_button_test;
 	public static String dialog_connection_events_checkbox_show_process;
 	public static String dialog_connection_events_checkbox_terminate_at_disconnect;
@@ -465,8 +462,6 @@ public class CoreMessages extends NLS {
 	public static String tools_wizard_page_log_task_progress_log;
 	public static String tools_wizard_page_log_task_started_at;
 	
-    public static String ui_actions_exit_emergency_question;
-
 	public static String dialog_connection_edit_driver_button;
 	public static String dialog_connection_driver;
 	public static String dialog_connection_advanced_settings;
@@ -745,7 +740,9 @@ public class CoreMessages extends NLS {
 
     public static String viewer_details_item_details;
     public static String viewer_details_item_session_details;
-    public static String viewer_sql_plan_item_execution_plan;
+    public static String viewer_selector_control_text_classic;
+	public static String viewer_selector_control_text_gallery;
+	public static String viewer_sql_plan_item_execution_plan;
     public static String viewer_view_item_sql;
 
     static {

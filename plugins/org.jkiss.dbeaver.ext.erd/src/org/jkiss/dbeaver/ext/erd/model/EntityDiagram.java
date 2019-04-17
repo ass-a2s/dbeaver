@@ -23,6 +23,7 @@ import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.jkiss.code.NotNull;
 import org.jkiss.dbeaver.ext.erd.ERDActivator;
 import org.jkiss.dbeaver.ext.erd.editor.ERDAttributeVisibility;
@@ -44,8 +45,13 @@ import java.util.*;
 public class EntityDiagram extends ERDObject<DBSObject> implements ERDContainer {
     public static class NodeVisualInfo {
         public Rectangle initBounds;
+        public boolean transparent;
         public Color bgColor;
+        public Color fgColor;
+        public Font font;
         public int zOrder = 0;
+        public int borderWidth = -1;
+
         public ERDAttributeVisibility attributeVisibility;
     }
 
@@ -367,7 +373,7 @@ public class EntityDiagram extends ERDObject<DBSObject> implements ERDContainer 
         this.needsAutoLayout = needsAutoLayout;
     }
 
-    public void addInitRelationBends(ERDEntity sourceEntity, ERDEntity targetEntity, String relName, List<Point> bends) {
+    public void addInitRelationBends(ERDElement<?> sourceEntity, ERDElement<?> targetEntity, String relName, List<Point> bends) {
         for (ERDAssociation rel : sourceEntity.getReferences()) {
             if (rel.getSourceEntity() == targetEntity && relName.equals(rel.getObject().getName())) {
                 rel.setInitBends(bends);
@@ -380,8 +386,8 @@ public class EntityDiagram extends ERDObject<DBSObject> implements ERDContainer 
         children.addAll(entities);
         children.addAll(notes);
         children.sort((o1, o2) -> {
-            NodeVisualInfo vi1 = o1 instanceof ERDNote ? noteVisuals.get(o1) : entityVisuals.get(o1);
-            NodeVisualInfo vi2 = o2 instanceof ERDNote ? noteVisuals.get(o2) : entityVisuals.get(o2);
+            NodeVisualInfo vi1 = o1 instanceof ERDNote ? noteVisuals.get(o1) : entityVisuals.get(o1.getObject());
+            NodeVisualInfo vi2 = o2 instanceof ERDNote ? noteVisuals.get(o2) : entityVisuals.get(o2.getObject());
             return vi1 != null && vi2 != null ? vi1.zOrder - vi2.zOrder : 0;
         });
         return children;

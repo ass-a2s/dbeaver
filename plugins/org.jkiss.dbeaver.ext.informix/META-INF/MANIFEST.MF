@@ -2,15 +2,9 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Informix Plug-in
 Bundle-SymbolicName: org.jkiss.dbeaver.ext.informix;singleton:=true
-Bundle-Version: 1.0.96.qualifier
-Bundle-Release-Date: 20190325
-Require-Bundle: org.eclipse.ui,
- org.eclipse.core.runtime,
- org.eclipse.ui.views,
- org.eclipse.jface,
- org.eclipse.jface.text,
- org.jkiss.dbeaver.core,
- org.eclipse.ui.workbench.texteditor,
+Bundle-Version: 1.0.98.qualifier
+Bundle-Release-Date: 20190422
+Require-Bundle: org.jkiss.dbeaver.model,
  org.jkiss.dbeaver.ext.generic
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8

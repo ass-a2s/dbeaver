@@ -124,6 +124,17 @@ public class GenericMetaModel {
                     // Use general schema reading method
                     log.debug("Error reading schemas in catalog '" + catalog.getName() + "' - " + e.getClass().getSimpleName() + " - " + e.getMessage());
                 }
+            } else {
+                try {
+                    dbResult = session.getMetaData().getSchemas(
+                        null,
+                        schemaFilters != null && schemaFilters.hasSingleMask() ?
+                            schemaFilters.getSingleMask() :
+                            dataSource.getAllObjectsPattern());
+                } catch (SQLException e) {
+                    log.debug("Error reading global schemas " + " - " + e.getMessage());
+                }
+
             }
             if (dbResult == null) {
                 dbResult = session.getMetaData().getSchemas();
@@ -389,12 +400,23 @@ public class GenericMetaModel {
     public JDBCStatement prepareTableLoadStatement(@NotNull JDBCSession session, @NotNull GenericStructContainer owner, @Nullable GenericTable object, @Nullable String objectName)
         throws SQLException
     {
+        String tableNamePattern;
+        if (object == null && objectName == null) {
+            final DBSObjectFilter tableFilters = session.getDataSource().getContainer().getObjectFilter(GenericTable.class, owner, false);
+
+            if (tableFilters != null && tableFilters.hasSingleMask()) {
+                tableNamePattern = tableFilters.getSingleMask();
+            } else {
+                tableNamePattern = owner.getDataSource().getAllObjectsPattern();
+            }
+        } else {
+            tableNamePattern = JDBCUtils.escapeWildCards(session, (object != null ? object.getName() : objectName));
+        }
+
         return session.getMetaData().getTables(
             owner.getCatalog() == null ? null : owner.getCatalog().getName(),
             owner.getSchema() == null ? null : JDBCUtils.escapeWildCards(session, owner.getSchema().getName()),
-            object == null && objectName == null ?
-                owner.getDataSource().getAllObjectsPattern() :
-                JDBCUtils.escapeWildCards(session, (object != null ? object.getName() : objectName)),
+            tableNamePattern,
             null).getSourceStatement();
     }
 

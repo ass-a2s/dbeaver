@@ -19,7 +19,6 @@ package org.jkiss.dbeaver.ui.dialogs.driver;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -31,7 +30,9 @@ import org.eclipse.swt.widgets.*;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.core.CoreMessages;
+import org.jkiss.dbeaver.model.DBIcon;
 import org.jkiss.dbeaver.model.DBPDataSource;
+import org.jkiss.dbeaver.model.connection.DBPDriver;
 import org.jkiss.dbeaver.model.connection.DBPDriverLibrary;
 import org.jkiss.dbeaver.registry.DataSourceProviderDescriptor;
 import org.jkiss.dbeaver.registry.DataSourceProviderRegistry;
@@ -42,7 +43,6 @@ import org.jkiss.dbeaver.registry.driver.DriverLibraryMavenArtifact;
 import org.jkiss.dbeaver.runtime.properties.PropertySourceCustom;
 import org.jkiss.dbeaver.ui.DBeaverIcons;
 import org.jkiss.dbeaver.ui.IHelpContextIds;
-import org.jkiss.dbeaver.ui.UIIcon;
 import org.jkiss.dbeaver.ui.UIUtils;
 import org.jkiss.dbeaver.ui.controls.CSmartCombo;
 import org.jkiss.dbeaver.ui.dialogs.HelpEnabledDialog;
@@ -104,10 +104,10 @@ public class DriverEditDialog extends HelpEnabledDialog {
         return dialogCount;
     }
 
-    public DriverEditDialog(Shell shell, DriverDescriptor driver) {
+    public DriverEditDialog(Shell shell, DBPDriver driver) {
         super(shell, IHelpContextIds.CTX_DRIVER_EDITOR);
-        this.driver = driver;
-        this.provider = driver.getProviderDescriptor();
+        this.driver = (DriverDescriptor) driver;
+        this.provider = this.driver.getProviderDescriptor();
         this.defaultCategory = driver.getCategory();
         this.newDriver = false;
         this.origLibList = new ArrayList<>(driver.getDriverLibraries());
@@ -382,7 +382,7 @@ public class DriverEditDialog extends HelpEnabledDialog {
                         cell.setImage(DBeaverIcons.getImage(lib.getIcon()));
                     } else {
                         cell.setText(element.toString());
-                        cell.setImage(DBeaverIcons.getImage(UIIcon.JAR));
+                        cell.setImage(DBeaverIcons.getImage(DBIcon.JAR));
                     }
                 }
 
@@ -427,7 +427,7 @@ public class DriverEditDialog extends HelpEnabledDialog {
             findClassButton.addListener(SWT.Selection, event -> {
                 try {
                     DriverClassFindJob classFinder = new DriverClassFindJob(driver, "java/sql/Driver", true);
-                    new ProgressMonitorDialog(getShell()).run(true, true, classFinder);
+                    UIUtils.runInProgressDialog(classFinder);
 
                     if (classListCombo != null && !classListCombo.isDisposed()) {
                         List<String> classNames = classFinder.getDriverClassNames();
@@ -437,8 +437,6 @@ public class DriverEditDialog extends HelpEnabledDialog {
 
                 } catch (InvocationTargetException e) {
                     log.error(e.getTargetException());
-                } catch (InterruptedException e) {
-                    log.error(e);
                 }
             });
             findClassButton.setEnabled(!isReadOnly);

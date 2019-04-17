@@ -25,6 +25,8 @@ import org.jkiss.dbeaver.model.DBPDataSourceContainer;
 import org.jkiss.dbeaver.model.DBPImage;
 import org.jkiss.dbeaver.model.access.DBAAuthInfo;
 import org.jkiss.dbeaver.model.access.DBAPasswordChangeInfo;
+import org.jkiss.dbeaver.model.connection.DBPDriver;
+import org.jkiss.dbeaver.model.connection.DBPDriverDependencies;
 import org.jkiss.dbeaver.model.exec.DBCExecutionContext;
 import org.jkiss.dbeaver.model.navigator.DBNNode;
 import org.jkiss.dbeaver.model.runtime.DBRProcessDescriptor;
@@ -45,6 +47,7 @@ public interface DBPPlatformUI {
         OK,
         CANCEL,
         IGNORE,
+        IGNORE_ALL,
         STOP,
         RETRY,
     }
@@ -53,6 +56,9 @@ public interface DBPPlatformUI {
     UserResponse showError(@NotNull final String title, @Nullable final String message, @NotNull final Throwable e);
     UserResponse showError(@NotNull final String title, @Nullable final String message);
     void showMessageBox(@NotNull final String title, @Nullable final String message, boolean error);
+
+    UserResponse showErrorStopRetryIgnore(String task, Throwable error, boolean queue);
+
 
     /**
      * Notification agent
@@ -69,6 +75,13 @@ public interface DBPPlatformUI {
      * Asks for password change. Returns null if user canceled this action.
      */
     DBAPasswordChangeInfo promptUserPasswordChange(String prompt, @Nullable String userName, @Nullable String oldPassword);
+
+    /**
+     * Ask user to accept license agreement
+     */
+    boolean acceptLicense(String message, String licenseText);
+
+    boolean downloadDriverFiles(DBPDriver driverDescriptor, DBPDriverDependencies dependencies);
 
     /**
      * UI utilities

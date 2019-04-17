@@ -68,16 +68,6 @@ public class EntityPart extends NodePart {
         return getEntity().getAttributes();
     }
 
-    @Override
-    protected List<ERDAssociation> getModelSourceConnections() {
-        return getEntity().getAssociations();
-    }
-
-    @Override
-    protected List<ERDAssociation> getModelTargetConnections() {
-        return getEntity().getReferences();
-    }
-
     //******************* Editing related methods *********************/
 
     /**
@@ -192,9 +182,8 @@ public class EntityPart extends NodePart {
             if (visualInfo.initBounds != null) {
                 figure.setLocation(visualInfo.initBounds.getLocation());
             }
-            this.customBackground = visualInfo.bgColor;
-            if (this.customBackground != null) {
-                figure.setBackgroundColor(this.customBackground);
+            if (visualInfo.bgColor != null) {
+                figure.setBackgroundColor(visualInfo.bgColor);
             }
             if (getEntity().getAttributeVisibility() == null && visualInfo.attributeVisibility != null) {
                 getEntity().setAttributeVisibility(visualInfo.attributeVisibility);
@@ -270,15 +259,6 @@ public class EntityPart extends NodePart {
         entityFigure.repaint();
     }
 
-    public AssociationPart getConnectionPart(ERDAssociation rel, boolean source) {
-        for (Object conn : source ? getSourceConnections() : getTargetConnections()) {
-            if (conn instanceof AssociationPart && ((AssociationPart) conn).getAssociation() == rel) {
-                return (AssociationPart) conn;
-            }
-        }
-        return null;
-    }
-
     @Override
     public ERDGraphicalViewer getViewer() {
         return (ERDGraphicalViewer) super.getViewer();
@@ -327,5 +307,10 @@ public class EntityPart extends NodePart {
     @Override
     public DragTracker getDragTracker(Request request) {
         return super.getDragTracker(request);
+    }
+
+    @Override
+    public ERDElement getElement() {
+        return getEntity();
     }
 }

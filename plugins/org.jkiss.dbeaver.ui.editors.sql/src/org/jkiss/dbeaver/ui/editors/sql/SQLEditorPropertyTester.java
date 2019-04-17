@@ -17,7 +17,7 @@
 package org.jkiss.dbeaver.ui.editors.sql;
 
 import org.eclipse.core.expressions.PropertyTester;
-import org.eclipse.jface.text.Document;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.viewers.ISelection;
@@ -70,11 +70,12 @@ public class SQLEditorPropertyTester extends PropertyTester
                     return false;
                 }
                 ITextSelection selection = (ITextSelection) selectionProvider.getSelection();
-                Document document = editor.getDocument();
+                IDocument document = editor.getDocument();
                 return
                     selection != null &&
                         document != null &&
                         !new SQLIdentifierDetector(
+                            editor.getSyntaxManager().getDialect(),
                             editor.getSyntaxManager().getStructSeparator(),
                             editor.getSyntaxManager().getQuoteStrings())
                             .detectIdentifier(document, new Region(selection.getOffset(), selection.getLength())).isEmpty();

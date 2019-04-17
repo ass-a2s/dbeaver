@@ -88,6 +88,7 @@ public interface DBPDriver extends DBPNamedObject
 
     boolean isEmbedded();
     boolean isAnonymousAccess();
+    boolean isLicenseRequired();
     boolean isCustomDriverLoader();
     boolean isUseURL();
     boolean isInstantiable();
@@ -116,6 +117,8 @@ public interface DBPDriver extends DBPNamedObject
 
     boolean isSupportedByLocalSystem();
 
+    String getLicense();
+
     /**
      * Client manager or null
      */
@@ -130,6 +133,8 @@ public interface DBPDriver extends DBPNamedObject
 
     @NotNull
     List<? extends DBPDriverLibrary> getDriverLibraries();
+
+    List<? extends DBPDriverFileSource> getDriverFileSources();
 
     @NotNull
     Object getDriverInstance(@NotNull DBRProgressMonitor monitor) throws DBException;

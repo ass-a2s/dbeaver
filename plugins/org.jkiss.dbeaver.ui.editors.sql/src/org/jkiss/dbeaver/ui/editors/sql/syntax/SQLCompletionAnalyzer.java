@@ -157,7 +157,9 @@ class SQLCompletionAnalyzer implements DBRRunnableParametrized<DBRProgressMonito
                     makeProposalsFromChildren(rootObject, request.wordPart, false);
                 } else {
                     // Get root object or objects from active database (if any)
-                    makeDataSourceProposals();
+                    if (request.queryType != SQLCompletionProcessor.QueryType.COLUMN && request.queryType != SQLCompletionProcessor.QueryType.EXEC) {
+                        makeDataSourceProposals();
+                    }
                 }
             }
 
@@ -517,6 +519,9 @@ class SQLCompletionAnalyzer implements DBRRunnableParametrized<DBRProgressMonito
     }
 
     private void makeProposalsFromChildren(DBPObject parent, @Nullable String startPart, boolean addFirst) throws DBException {
+        if (request.queryType == SQLCompletionProcessor.QueryType.EXEC) {
+            return;
+        }
         if (startPart != null) {
             startPart = request.wordDetector.removeQuotes(startPart).toUpperCase(Locale.ENGLISH);
             int divPos = startPart.lastIndexOf(request.editor.getSyntaxManager().getStructSeparator());
@@ -695,10 +700,7 @@ class SQLCompletionAnalyzer implements DBRRunnableParametrized<DBRProgressMonito
                     if (structObject.getContainer() != null) {
                         DBSObject selectedObject = DBUtils.getActiveInstanceObject(dataSource.getDefaultInstance());
                         if (selectedObject != structObject.getContainer()) {
-                            replaceString = DBUtils.getFullQualifiedName(
-                                dataSource,
-                                structObject.getContainer() instanceof DBPDataSource ? null : structObject.getContainer(),
-                                object);
+                            replaceString = structObject.getFullyQualifiedName(DBPEvaluationContext.DML);
                             isSingleObject = false;
                         }
                     }

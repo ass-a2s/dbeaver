@@ -198,6 +198,27 @@
                     <property name="@dbeaver-default-resultset.maxrows.sql" value="true"/>
                 </driver>
                 <driver
+                    id="mysql_ndb"
+                    label="NDB Cluster"
+                    icon="icons/mysql_icon.png"
+                    iconBig="icons/mysql_icon_big.png"
+                    class="com.mysql.jdbc.Driver"
+                    sampleURL="jdbc:mysql:loadbalance://{host}[:{port}]/[{database}]"
+                    useURL="false"
+                    defaultPort="3306"
+                    webURL="https://dev.mysql.com/doc/ndbapi/en/mccj-using-connectorj.html"
+                    propertiesURL="https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-reference-configuration-properties.html"
+                    description="Driver for MySQL NDB cluster"
+                    categories="sql">
+                    <file type="jar" path="maven:/mysql:mysql-connector-java:RELEASE" bundle="!drivers.mysql"/>
+                    <file type="license" path="drivers/mysql/LICENSE.txt" bundle="drivers.mysql"/>
+                    <file type="jar" path="drivers/mysql/mysql-connector-java-8.jar" bundle="drivers.mysql"/>
+                    <file type="jar" path="drivers/mysql/protobuf-java.jar" bundle="drivers.mysql"/>
+                    <property name="connectTimeout" value="20000"/>
+                    <property name="@dbeaver-default-resultset.maxrows.sql" value="true"/>
+                </driver>
+
+                <driver
                     id="mariaDB"
                     label="MariaDB"
                     icon="icons/mariadb_icon.png"
@@ -246,7 +267,7 @@
 
     <extension point="org.jkiss.dbeaver.objectManager">
         <manager class="org.jkiss.dbeaver.ext.mysql.edit.MySQLUserManager" objectType="org.jkiss.dbeaver.ext.mysql.model.MySQLUser"/>
-        <manager class="org.jkiss.dbeaver.ext.mysql.edit.MySQLCatalogManager" objectType="org.jkiss.dbeaver.ext.mysql.model.MySQLCatalog" label="%manager.catalog.name"/>
+        <manager class="org.jkiss.dbeaver.ext.mysql.edit.MySQLDatabaseManager" objectType="org.jkiss.dbeaver.ext.mysql.model.MySQLCatalog" label="%manager.catalog.name"/>
         <manager class="org.jkiss.dbeaver.ext.mysql.edit.MySQLTableManager" objectType="org.jkiss.dbeaver.ext.mysql.model.MySQLTable"/>
         <manager class="org.jkiss.dbeaver.ext.mysql.edit.MySQLTableColumnManager" objectType="org.jkiss.dbeaver.ext.mysql.model.MySQLTableColumn"/>
         <manager class="org.jkiss.dbeaver.ext.mysql.edit.MySQLConstraintManager" objectType="org.jkiss.dbeaver.ext.mysql.model.MySQLTableConstraint"/>

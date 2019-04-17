@@ -25,6 +25,8 @@ public interface DBPDataSourceProviderRegistry {
 
     List<? extends DBPDataSourceProviderDescriptor> getDataSourceProviders();
 
+    List<? extends DBPDataSourceProviderDescriptor> getEnabledDataSourceProviders();
+
     DBPDataSourceProviderDescriptor getDataSourceProvider(String id);
 
     void saveConnectionTypes();
